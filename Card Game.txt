@@ -1,0 +1,646 @@
+#include<iostream>
+#include <cstdlib>      // std::rand, std::srand
+#include<vector>
+#include<string>
+#include <algorithm>    // std::random_shuffle
+#include <fstream>
+#include<list>
+using namespace std;
+
+class player {
+public:
+	int id;
+	bool inGame = 1;
+	bool inTie = 0;
+	player* next;
+	player* pre;
+	list<pair<int, char>> handCard;
+	list<pair<int, char>> desk;
+	player() {
+		id = 0;
+		next = nullptr;
+		pre = nullptr;
+	}
+	player(int i) {
+		id = i;
+		next = nullptr;
+		pre = nullptr;
+	}
+};
+
+void game(int numOfPlayers) {
+	vector<pair<int, char>> publicDesk;// for storing tie battle's card which dropped by run out man
+	ofstream myfile;
+	myfile.open("data1.txt");
+	//initial card set(52)
+	vector<pair<int, char>> deck;
+	for (int i = 1; i <= 4; i++) {
+		for (int j = 1; j <= 13; j++) {
+			char curType;
+			//1st element: number
+			int curNum = j;
+			//second element: type
+			if (i == 1) {//spade
+				curType = { 'S' };
+			}
+			else if (i == 2) {//heart
+				curType = { 'H' };
+			}
+			else if (i == 3) {//diamond
+				curType = { 'D' };
+			}
+			else if (i == 4) {//club
+				curType = { 'C' };
+			}
+			pair<int, char> curCard(curNum, curType);
+			deck.push_back(curCard);
+		}
+	}
+	//for access card info
+	for (auto i : deck) {
+		cout << i.first << i.second << " ";
+	}
+	cout << endl;
+	myfile << "************** initial deck of cards before shuffle ****" << endl;
+	myfile << " " << endl;
+	for (auto i : deck) {
+		if (i.first == 1) {
+			char curNum = { 'A' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first < 11 && i.first > 1) {
+			myfile << i.first << i.second << " ";
+		}
+		else if (i.first == 11) {
+			char curNum = { 'J' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first == 12) {
+			char curNum = { 'Q' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first == 13) {
+			char curNum = { 'K' };
+			myfile << curNum << i.second << " ";
+		}
+	}
+	myfile << " " << endl;
+	myfile << " " << endl;
+	//shuffle card set
+	random_shuffle(deck.begin(), deck.end());
+	//for access card info
+	for (auto i : deck) {
+		cout << i.first << i.second << " ";
+	}
+	myfile << "****************** after shuffle **************" << endl;
+	myfile << " " << endl;
+	for (auto i : deck) {
+		if (i.first == 1) {
+			char curNum = { 'A' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first < 11 && i.first > 1) {
+			myfile << i.first << i.second << " ";
+		}
+		else if (i.first == 11) {
+			char curNum = { 'J' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first == 12) {
+			char curNum = { 'Q' };
+			myfile << curNum << i.second << " ";
+		}
+		else if (i.first == 13) {
+			char curNum = { 'K' };
+			myfile << curNum << i.second << " ";
+		}
+	}
+	myfile << " " << endl;
+	myfile << " " << endl;
+	myfile << "****************** after cards are dealt **************" << endl;
+	myfile << " " << endl;
+	myfile << " " << endl;
+	//create players
+	player* cur = nullptr;
+	player* FirstPlayer = nullptr;
+	player* LastPlayer = nullptr;
+	for (int i = 1; i <= numOfPlayers; i++) {
+		player* newPlayer = new player(i);
+		if (cur == nullptr) {
+			FirstPlayer = newPlayer;
+			newPlayer->pre = cur;
+		}
+		else {
+			newPlayer->pre = cur;
+			cur->next = newPlayer;
+		}
+		cur = newPlayer;
+	}
+	LastPlayer = cur;
+	//form a circle(round desk battle!)
+	FirstPlayer->pre = LastPlayer;
+	LastPlayer->next = FirstPlayer;
+	//choose this game's dealer
+	int dealer = rand() % numOfPlayers + 1;
+	player* Dealer = FirstPlayer;
+	while (Dealer->id != dealer) {
+		Dealer = Dealer->next;
+	}
+	//deal card from the man next to dealer
+	player* personGetCard = Dealer->next;
+	while (!deck.empty()) {
+		pair<int, char> card = deck.back();
+		deck.pop_back();
+		personGetCard->handCard.push_back(card);
+		personGetCard = personGetCard->next;
+	}
+	player* showHand = FirstPlayer;
+	//int curPlayerID = 1;
+	do {
+		myfile << "cards for player " << showHand->id << endl;
+		for (auto i : showHand->handCard) {
+			if (i.first == 1) {
+				char curNum = { 'A' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first < 11 && i.first > 1) {
+				myfile << i.first << i.second << " ";
+			}
+			else if (i.first == 11) {
+				char curNum = { 'J' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first == 12) {
+				char curNum = { 'Q' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first == 13) {
+				char curNum = { 'K' };
+				myfile << curNum << i.second << " ";
+			}
+		}
+		myfile << " " << endl;
+		//curPlayerID++;
+		showHand = showHand->next;
+	}
+	while (showHand != FirstPlayer);
+	myfile << " " << endl;
+	do {
+		myfile << "Hand " << showHand->id << endl;
+		for (auto i : showHand->handCard) {
+			if (i.first == 1) {
+				char curNum = { 'A' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first < 11 && i.first > 1) {
+				myfile << i.first << i.second << " ";
+			}
+			else if (i.first == 11) {
+				char curNum = { 'J' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first == 12) {
+				char curNum = { 'Q' };
+				myfile << curNum << i.second << " ";
+			}
+			else if (i.first == 13) {
+				char curNum = { 'K' };
+				myfile << curNum << i.second << " ";
+			}
+		}
+		myfile << " " << endl;
+		myfile << " " << endl;
+		//curPlayerID++;
+		showHand = showHand->next;
+	} while (showHand != FirstPlayer);
+	
+	
+	//start battle
+
+	//count valid players
+	player* cntvalidPlayer = FirstPlayer;
+	int validPlayer = 0;
+	do {
+		if (cntvalidPlayer->inGame == 1) {
+			validPlayer++;
+		}
+		cntvalidPlayer = cntvalidPlayer->next;
+	} while (cntvalidPlayer != FirstPlayer);
+
+	//keep playing game when there are 2 more players
+	while (validPlayer != 1) {
+		//put card to their own desk
+		player* curPlayer = FirstPlayer;
+		do {
+			if (curPlayer->inGame == 1) {
+				pair<int, char> battleCard = curPlayer->handCard.front();
+				curPlayer->handCard.pop_front();
+				curPlayer->desk.push_front(battleCard);
+			}
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		//show hand and desk's card
+		do {
+			myfile << "table " << curPlayer->id << endl;
+			if (curPlayer->inGame == 1) {
+				for (auto i : curPlayer->desk) {
+					if (i.first == 1) {
+						char curNum = { 'A' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first < 11 && i.first > 1) {
+						myfile << i.first << i.second << " ";
+					}
+					else if (i.first == 11) {
+						char curNum = { 'J' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first == 12) {
+						char curNum = { 'Q' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first == 13) {
+						char curNum = { 'K' };
+						myfile << curNum << i.second << " ";
+					}
+				}
+				myfile << " " << endl;
+				myfile << " " << endl;
+			}
+			else{
+				myfile << " " << endl;
+				myfile << " " << endl;
+			}
+			//curPlayerID++;
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		do {
+			myfile << "Hand " << curPlayer->id << endl;
+			if (curPlayer->inGame == 1) {
+				for (auto i : curPlayer->handCard) {
+					if (i.first == 1) {
+						char curNum = { 'A' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first < 11 && i.first > 1) {
+						myfile << i.first << i.second << " ";
+					}
+					else if (i.first == 11) {
+						char curNum = { 'J' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first == 12) {
+						char curNum = { 'Q' };
+						myfile << curNum << i.second << " ";
+					}
+					else if (i.first == 13) {
+						char curNum = { 'K' };
+						myfile << curNum << i.second << " ";
+					}
+				}
+				myfile << " " << endl;
+				myfile << " " << endl;
+			}
+			else {
+				myfile << " " << endl;
+				myfile << " " << endl;
+			}
+			//curPlayerID++;
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		//determine the winner
+		player* winner = FirstPlayer;
+		int min = 14;
+		do {
+			if (curPlayer->inGame == 1) {
+				if (curPlayer->desk.front().first < min) {
+					min = curPlayer->desk.front().first;
+					winner = curPlayer;
+				}
+			}
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		//detect tie condition
+		int tieNum = 0;
+		do {
+			if (curPlayer->inGame == 1) {
+				if (curPlayer->desk.front().first == min) {
+					tieNum++;
+					curPlayer->inTie = 1;
+				}
+			}
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		label1:
+		if (tieNum == 0) {
+			cout << "error, no minmum find." << endl;
+		}
+		else if (tieNum == 1) { cout << "No tie in this battle!" << endl; }
+		else if (tieNum != 1) {
+			//two more card need for tied player
+			do {
+				if (curPlayer->inGame == 1) {
+					if (curPlayer->inTie == 1) {
+						if (curPlayer->handCard.size() <= 2) {//have no enough card for extra battel
+							while (!curPlayer->handCard.empty()) {//drop all hand card to public desk
+								pair<int, char> curDrop = curPlayer->handCard.back();
+								curPlayer->handCard.pop_back();
+								publicDesk.push_back(curDrop);
+							}
+							while (!curPlayer->desk.empty()) {//drop all desk card to public desk
+								pair<int, char> curDrop = curPlayer->desk.back();
+								curPlayer->desk.pop_back();
+								publicDesk.push_back(curDrop);
+							}
+							//expel curplayer
+							curPlayer->inGame = 0;
+							curPlayer->inTie = 0;
+							if (curPlayer->desk.empty() && curPlayer->handCard.empty()) {
+								cout << "correct expel a player" << endl;
+							}
+							else {
+								cout << "error, wrong to expel a player" << endl;
+							}
+						}
+						else if (curPlayer->handCard.size() > 2) {
+							for (int i = 0; i < 2; i++) {
+								pair<int, char> curPut = curPlayer->handCard.front();
+								curPlayer->handCard.pop_front();
+								curPlayer->desk.push_front(curPut);
+							}
+						}
+					}
+				}
+				curPlayer = curPlayer->next;
+			} while (curPlayer != FirstPlayer);
+
+			//show table and hand card again
+			do {
+				myfile << "table " << curPlayer->id << endl;
+				if (curPlayer->inGame == 1) {
+					for (auto i : curPlayer->desk) {
+						if (i.first == 1) {
+							char curNum = { 'A' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first < 11 && i.first > 1) {
+							myfile << i.first << i.second << " ";
+						}
+						else if (i.first == 11) {
+							char curNum = { 'J' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first == 12) {
+							char curNum = { 'Q' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first == 13) {
+							char curNum = { 'K' };
+							myfile << curNum << i.second << " ";
+						}
+					}
+					myfile << " " << endl;
+					myfile << " " << endl;
+				}
+				else {
+					myfile << " " << endl;
+					myfile << " " << endl;
+				}
+				//curPlayerID++;
+				curPlayer = curPlayer->next;
+			} while (curPlayer != FirstPlayer);
+			do {
+				myfile << "Hand " << curPlayer->id << endl;
+				if (curPlayer->inGame == 1) {
+					for (auto i : curPlayer->handCard) {
+						if (i.first == 1) {
+							char curNum = { 'A' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first < 11 && i.first > 1) {
+							myfile << i.first << i.second << " ";
+						}
+						else if (i.first == 11) {
+							char curNum = { 'J' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first == 12) {
+							char curNum = { 'Q' };
+							myfile << curNum << i.second << " ";
+						}
+						else if (i.first == 13) {
+							char curNum = { 'K' };
+							myfile << curNum << i.second << " ";
+						}
+					}
+					myfile << " " << endl;
+					myfile << " " << endl;
+				}
+				else {
+					myfile << " " << endl;
+					myfile << " " << endl;
+				}
+				//curPlayerID++;
+				curPlayer = curPlayer->next;
+			} while (curPlayer != FirstPlayer);
+
+			//check tied player
+			min = 14;
+			winner = FirstPlayer;
+			do {
+				if (curPlayer->inGame == 1) {
+					if (curPlayer->inTie == 1) {
+						if (min >= curPlayer->desk.front().first) {
+							min = curPlayer->desk.front().first;
+							winner = curPlayer;
+						}
+						else {//first card in desk of this player make him lose game
+							curPlayer->inTie = 0;
+						}
+					}
+				}
+				curPlayer = curPlayer->next;
+			} while (curPlayer != FirstPlayer);
+			tieNum = 0;
+			do {
+				if (curPlayer->inGame == 1 && curPlayer->inTie ==1) {
+					tieNum++;
+				}
+				curPlayer = curPlayer->next;
+			} while (curPlayer != FirstPlayer);
+			if (tieNum > 1) {
+				goto label1;
+			}
+		}
+		//for now we find winner
+		//put all desks' card to winner  and  expel all player who have less than 5 cards give all card to winner
+		while (!publicDesk.empty()) {
+			pair<int, char> toWinnerCard = publicDesk.back();
+			publicDesk.pop_back();
+			winner->handCard.push_back(toWinnerCard);
+		}
+		do{
+			while (!curPlayer->desk.empty()) {
+				pair<int, char> toWinnerCard = curPlayer->desk.back();
+				curPlayer->desk.pop_back();
+				winner->handCard.push_back(toWinnerCard);
+			}
+			if (curPlayer->handCard.size() < 5) {
+				curPlayer->inGame = 0;
+				while (!curPlayer->handCard.empty()) {
+					pair<int, char> toWinnerCard = curPlayer->handCard.back();
+					curPlayer->handCard.pop_back();
+					winner->handCard.push_back(toWinnerCard);
+				}
+			}
+			curPlayer = curPlayer->next;
+		} while (curPlayer != FirstPlayer);
+		
+		//shuffle winner's hand card
+		vector<pair<int, char>> forWinnerShuffle;
+		while (!winner->handCard.empty()) {
+			pair<int, char> temp = winner->handCard.back();
+			winner->handCard.pop_back();
+			forWinnerShuffle.push_back(temp);
+		}
+		random_shuffle(forWinnerShuffle.begin(), forWinnerShuffle.end());
+		while (!forWinnerShuffle.empty()) {
+			pair<int, char> temp = forWinnerShuffle.back();
+			forWinnerShuffle.pop_back();
+			winner->handCard.push_back(temp);
+		}
+
+		cntvalidPlayer = FirstPlayer;
+		validPlayer = 0;
+		do {
+			if (cntvalidPlayer->inGame == 1) {
+				validPlayer++;
+			}
+			cntvalidPlayer = cntvalidPlayer->next;
+		} while (cntvalidPlayer != FirstPlayer);
+	}
+	//finish this round
+	player* curPlayer = FirstPlayer;
+	do {
+		myfile << "table " << curPlayer->id << endl;
+		if (curPlayer->inGame == 1) {
+			for (auto i : curPlayer->desk) {
+				if (i.first == 1) {
+					char curNum = { 'A' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first < 11 && i.first > 1) {
+					myfile << i.first << i.second << " ";
+				}
+				else if (i.first == 11) {
+					char curNum = { 'J' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 12) {
+					char curNum = { 'Q' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 13) {
+					char curNum = { 'K' };
+					myfile << curNum << i.second << " ";
+				}
+			}
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		else {
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		//curPlayerID++;
+		curPlayer = curPlayer->next;
+	} while (curPlayer != FirstPlayer);
+	do {
+		myfile << "Hand " << curPlayer->id << endl;
+		if (curPlayer->inGame == 1) {
+			cout << curPlayer->handCard.size();
+			for (auto i : curPlayer->handCard) {
+				if (i.first == 1) {
+					char curNum = { 'A' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first < 11 && i.first > 1) {
+					myfile << i.first << i.second << " ";
+				}
+				else if (i.first == 11) {
+					char curNum = { 'J' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 12) {
+					char curNum = { 'Q' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 13) {
+					char curNum = { 'K' };
+					myfile << curNum << i.second << " ";
+				}
+			}
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		else {
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		//curPlayerID++;
+		curPlayer = curPlayer->next;
+	} while (curPlayer != FirstPlayer);
+	myfile << " " << endl;
+	
+	do {
+		if (curPlayer->inGame == 1) {
+			myfile << "Game Over!!  The winner is player " << curPlayer->id << endl;
+		}
+		curPlayer = curPlayer->next;
+	} while (curPlayer != FirstPlayer);
+
+	do {
+		myfile << "Final hand " << curPlayer->id << endl;
+		if (curPlayer->inGame == 1) {
+			cout << curPlayer->handCard.size();
+			for (auto i : curPlayer->handCard) {
+				if (i.first == 1) {
+					char curNum = { 'A' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first < 11 && i.first > 1) {
+					myfile << i.first << i.second << " ";
+				}
+				else if (i.first == 11) {
+					char curNum = { 'J' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 12) {
+					char curNum = { 'Q' };
+					myfile << curNum << i.second << " ";
+				}
+				else if (i.first == 13) {
+					char curNum = { 'K' };
+					myfile << curNum << i.second << " ";
+				}
+			}
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		else {
+			myfile << " " << endl;
+			myfile << " " << endl;
+		}
+		//curPlayerID++;
+		curPlayer = curPlayer->next;
+	} while (curPlayer != FirstPlayer);
+	myfile.close();
+}
+
+int main() {
+	int numPlayer;
+	cout << "Enter player number(2 ~ 7): ";
+	cin >> numPlayer;
+	game(numPlayer);
+	return 0;
+}
